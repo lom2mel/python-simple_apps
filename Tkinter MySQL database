@@ -1,0 +1,202 @@
+import pymysql
+from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox
+import tkinter as tk
+
+#connection later
+def connection():
+    conn=pymysql.connect(
+        host="localhost",user='root',password='',db='employee_db'
+    )
+    return conn
+
+def resfreshTable():
+    for data in my_tree.get_children():
+        my_tree.delete(data)
+
+    for array in read():
+        my_tree.insert(parent='',index='end',iid=array,text="",values=(array),tag="orow")
+
+    my_tree.tag_configure('orow',background='#EEEEEE',font=('Arial',12))
+    my_tree.grid(row=12,column=0,columnspan=5,rowspan=11,padx=10,pady=20)    
+
+
+#gui
+
+root = Tk()
+root.title("Payroll System")
+root.geometry("1400x800")
+my_tree = ttk.Treeview(root)
+
+#functions later
+
+def read():
+    conn=connection()
+    cursor=conn.cursor()
+    cursor.execute("SELECT * FROM employees")
+    results=cursor.fetchall()
+    conn.commit()
+    conn.close()
+    return results
+
+def add():
+    pbonumber=str(pbonumberEntry.get())
+    employid=str(employidEntry.get())
+    fname=str(fnameEntry.get())
+    lname=str(lnameEntry.get())
+    position=str(positionEntry.get())
+    etd=str(etdEntry.get())
+    statusappt=str(statusapptEntry.get())
+    expiration=str(expirationEntry.get())
+    monthlysal=str(monthlysalEntry.get())
+
+    if(pbonumber=="" or pbonumber==" ") or (employid=="" or employid==" ") or (fname=="" or fname==" ") or (lname=="" or lname==" ") or \
+        (position=="" or position==" ") or (etd=="" or etd==" ") or (statusappt=="" or statusappt==" ") or (expiration=="" or expiration==" ") or (monthlysal=="" or monthlysal==" "):
+        messagebox.showinfo("Error","Please fill up the blank entry")
+        return
+    else:
+        try:
+            conn=connection()
+            cursor=conn.cursor()
+            cursor.execute("INSERT INTO employees VALUES ('"+pbonumber+"','"+employid+"','"+fname+"','"+lname+"','"+position+"','"+etd+"', \
+                           '"+statusappt+"','"+expiration+"','"+monthlysal+"') ")
+            conn.commit()
+            conn.close()
+        except:
+            messagebox.showinfo("Error","Employee ID already exist")  
+            return
+
+    resfreshTable()
+
+def reset():
+    desicion=messagebox.askquestion("Warning!!", "Delete all data?")
+    if desicion != "yes":
+        return
+    else:
+        try:
+            conn=connection()
+            cursor=conn.cursor()
+            cursor.execute("DELETE FROM employees")
+            conn.commit()
+            conn.close()
+        except:
+            messagebox.showinfo("Error","Sorry an error occured")  
+            return
+
+    resfreshTable()
+
+def delete(): ##########################################
+    desicion=messagebox.askquestion("Warning!!", "Delete the selected data?")
+    if desicion != "yes":
+        return
+    else:
+        selected_item=my_tree.selection()[0]
+        deleteData=str(my_tree.item(selected_item)['values'][1]) # no.2 column in mytree array
+        try:
+            conn=connection()
+            cursor=conn.cursor()
+            cursor.execute("DELETE FROM employees WHERE employid='"+str(deleteData)+"'")
+            conn.commit()
+            conn.close()
+        except:
+            messagebox.showinfo("Error","Sorry an error occured")  
+            return
+
+    resfreshTable()
+
+
+#gui
+label=Label(root,text="PP",font=('Arial Bold',30))
+label.grid(row=0,column=0,columnspan=8,rowspan=2,padx=50,pady=40)
+
+pbonumberLabel=Label(root,text="PBO No.:",font=('Arial Bold',15))
+employidLabel=Label(root,text="EMPLOYEE ID:",font=('Arial Bold',15))
+fnameLabel=Label(root,text="FIRST NAME:",font=('Arial Bold',15))
+lnameLabel=Label(root,text="LAST NAME:",font=('Arial Bold',15))
+positionLabel=Label(root,text="POSITION:",font=('Arial Bold',15))
+etdLabel=Label(root,text="EFFECTIVE DATE OF APPOINTMENT:",font=('Arial Bold',15))
+statusapptLabel=Label(root,text="STATUS OF APPT.:",font=('Arial Bold',15))
+expirationLabel=Label(root,text="EXPIRATION DATE:",font=('Arial Bold',15))
+monthlysalLabel=Label(root,text="MONTHLY SALARY:",font=('Arial Bold',15))
+
+
+pbonumberLabel.grid(row=3,column=0,columnspan=1,padx=50,pady=5)
+employidLabel.grid(row=4,column=0,columnspan=1,padx=50,pady=5)
+fnameLabel.grid(row=5,column=0,columnspan=1,padx=50,pady=5)
+lnameLabel.grid(row=6,column=0,columnspan=1,padx=50,pady=5)
+positionLabel.grid(row=7,column=0,columnspan=1,padx=50,pady=5)
+etdLabel.grid(row=8,column=0,columnspan=1,padx=50,pady=5)
+statusapptLabel.grid(row=9,column=0,columnspan=1,padx=50,pady=5)
+expirationLabel.grid(row=10,column=0,columnspan=1,padx=50,pady=5)
+monthlysalLabel.grid(row=11,column=0,columnspan=1,padx=50,pady=5)
+
+pbonumberEntry=Entry(root,width=55,bd=5,font=('Arial',15))
+employidEntry=Entry(root,width=55,bd=5,font=('Arial',15))
+fnameEntry=Entry(root,width=55,bd=5,font=('Arial',15))
+lnameEntry=Entry(root,width=55,bd=5,font=('Arial',15))
+positionEntry=Entry(root,width=55,bd=5,font=('Arial',15))
+etdEntry=Entry(root,width=55,bd=5,font=('Arial',15))
+statusapptEntry=Entry(root,width=55,bd=5,font=('Arial',15))
+expirationEntry=Entry(root,width=55,bd=5,font=('Arial',15))
+monthlysalEntry=Entry(root,width=55,bd=5,font=('Arial',15))
+
+pbonumberEntry.grid(row=3,column=1,columnspan=4,padx=5,pady=0)
+employidEntry.grid(row=4,column=1,columnspan=4,padx=5,pady=0)
+fnameEntry.grid(row=5,column=1,columnspan=4,padx=5,pady=0)
+lnameEntry.grid(row=6,column=1,columnspan=4,padx=5,pady=0)
+positionEntry.grid(row=7,column=1,columnspan=4,padx=5,pady=0)
+etdEntry.grid(row=8,column=1,columnspan=4,padx=5,pady=0)
+statusapptEntry.grid(row=9,column=1,columnspan=4,padx=5,pady=0)
+expirationEntry.grid(row=10,column=1,columnspan=4,padx=5,pady=0)
+monthlysalEntry.grid(row=11,column=1,columnspan=4,padx=5,pady=0)
+
+#command later
+addBtn=Button(
+    root,text="Add",padx=65,pady=25,width=10,bd=5,font=('Arial',15),bg="#84F894",command=add
+)
+updateBtn=Button(
+    root,text="Update",padx=65,pady=25,width=10,bd=5,font=('Arial',15),bg="#84E848"
+)
+deleteBtn=Button(
+    root,text="Delete",padx=65,pady=25,width=10,bd=5,font=('Arial',15),bg="#FF9999",command=delete
+)
+searchBtn=Button(
+    root,text="Search",padx=65,pady=25,width=10,bd=5,font=('Arial',15),bg="#F4FE82"
+)
+resetBtn=Button(
+    root,text="Reset",padx=65,pady=25,width=10,bd=5,font=('Arial',15),bg="#F398FF",command=reset
+)
+selectBtn=Button(
+    root,text="Select",padx=65,pady=25,width=10,bd=5,font=('Arial',15),bg="#EEEEEE"
+)
+
+addBtn.grid(row=3,column=5,columnspan=1,rowspan=2)
+updateBtn.grid(row=5,column=5,columnspan=1,rowspan=2)
+deleteBtn.grid(row=7,column=5,columnspan=1,rowspan=2)
+searchBtn.grid(row=9,column=5,columnspan=1,rowspan=2)
+resetBtn.grid(row=11,column=5,columnspan=1,rowspan=2)
+selectBtn.grid(row=13,column=5,columnspan=1,rowspan=2)
+
+style=ttk.Style()
+style.configure("Treeview.Heading",font=('Arial Bold',15))
+my_tree['columns']=("PBO#","Employee ID", "Firstname","Lastname","Phone")
+
+my_tree.column("#0",width=0,stretch=NO)
+my_tree.column("PBO#",anchor=W,width=170)
+my_tree.column("Employee ID",anchor=W,width=165)
+my_tree.column("Firstname",anchor=W,width=150)
+my_tree.column("Lastname",anchor=W,width=150)
+my_tree.column("Phone",anchor=W,width=150)
+
+my_tree.heading("PBO#",text="PBO Number", anchor=W)
+my_tree.heading("Employee ID",text="Employee ID", anchor=W)
+my_tree.heading("Firstname",text="Firstname", anchor=W)
+my_tree.heading("Lastname",text="Lastname", anchor=W)
+my_tree.heading("Phone",text="Phone", anchor=W)
+
+resfreshTable()
+   
+
+
+root.mainloop()
